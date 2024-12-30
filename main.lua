@@ -6,8 +6,10 @@ function love.load()
     -- Initialize random seed
     math.randomseed(os.time())
 
-    love.window.setMode(800, 600, {resizable = true, minwidth = minWidth, minheight = minHeight})
+    -- Set window mode to allow resizing with minimum dimensions
+    love.window.setMode(minWidth, minHeight, {resizable = true, minwidth = minWidth, minheight = minHeight})
 
+    -- Calculate and store the aspect ratio
     aspectRatio = love.graphics.getWidth() / love.graphics.getHeight()
 
     -- Load necessary modules
@@ -30,6 +32,10 @@ end
 
 function love.keypressed(key)
     game:keypressed(key)
+end
+
+function love.mousepressed(x, y, button, istouch, presses)
+    game:mousepressed(x, y, button, istouch, presses)
 end
 
 function love.resize(w, h)
