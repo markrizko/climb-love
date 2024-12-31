@@ -7,9 +7,9 @@ function Game:new()
     game.blackDeck = Deck:new()
     game.redDeck:fillRed()
     game.blackDeck:fillBlack()
-    game.redInPlay = {}
-    game.blackInPlay = {}
-    game.selectedCards = {red = {}, black = {}}
+    game.redInPlay = {{tag = 0, value = 0}, {tag = 0, value = 0}, {tag = 0, value = 0}}
+    game.blackInPlay = {{tag = 0, value = 0}, {tag = 0, value = 0}, {tag = 0, value = 0}}
+    game.selectedCards = {red = {false, false, false}, black = {false, false, false}}
     game.score = 0
     game.gameOver = false
     game.graphicsController = GraphicsController:new()
@@ -40,9 +40,9 @@ end
 function Game:mousepressed(x, y, button, istouch, presses)
     if button == 1 then
         -- Debug prints to check values
-        print("x: " .. tostring(x) .. ", y: " .. tostring(y))
-        print("BUTTON_X: " .. tostring(self.graphicsController.BUTTON_X) .. ", BUTTON_Y: " .. tostring(self.graphicsController.BUTTON_Y))
-        print("BUTTON_WIDTH: " .. tostring(self.graphicsController.BUTTON_WIDTH) .. ", BUTTON_HEIGHT: " .. tostring(self.graphicsController.BUTTON_HEIGHT))
+        -- print("x: " .. tostring(x) .. ", y: " .. tostring(y))
+        -- print("BUTTON_X: " .. tostring(self.graphicsController.BUTTON_X) .. ", BUTTON_Y: " .. tostring(self.graphicsController.BUTTON_Y))
+        -- print("BUTTON_WIDTH: " .. tostring(self.graphicsController.BUTTON_WIDTH) .. ", BUTTON_HEIGHT: " .. tostring(self.graphicsController.BUTTON_HEIGHT))
 
         -- Check if the play move button is pressed
         if x >= self.graphicsController.BUTTON_X and x <= self.graphicsController.BUTTON_X + self.graphicsController.BUTTON_WIDTH and y >= self.graphicsController.BUTTON_Y and y <= self.graphicsController.BUTTON_Y + self.graphicsController.BUTTON_HEIGHT then
@@ -84,22 +84,49 @@ function Game:startGame()
 end
 
 function Game:drawCards()
-    for i = 1, 3 do
-        table.insert(self.redInPlay, self.redDeck:getCard())
-        table.insert(self.blackInPlay, self.blackDeck:getCard())
+    for i, card in ipairs(self.redInPlay) do
+        if card.tag == 0 then
+            self.redInPlay[i] = self.redDeck:getCard()
+        end
+    end
+
+    for i, card in ipairs(self.blackInPlay) do
+        if card.tag == 0 then
+            self.blackInPlay[i] = self.blackDeck:getCard()
+        end
     end
 end
 
-function Game:compare()
-    local redTotal = 0
-    local blackTotal = 0
-    local redTag = 0
-    local blackTag = 0
-
+function Game:redTotal()
+    local total = 0
     for i, selected in ipairs(self.selectedCards.red) do
         if selected then
             local card = self.redInPlay[i]
-            redTotal = redTotal + card.value
+            total = total + card.value
+        end
+    end
+    print("Red total: " .. total)
+    return total
+end
+
+function Game:blackTotal()
+    local total = 0
+    for i, selected in ipairs(self.selectedCards.black) do
+        if selected then
+            local card = self.blackInPlay[i]
+            total = total + card.value
+        end
+    end
+    print("Black total: " .. total)
+    return total
+end
+
+function Game:getTags()
+    local redTag = 0
+    local blackTag = 0
+    for i, selected in ipairs(self.selectedCards.red) do
+        if selected then
+            local card = self.redInPlay[i]
             if card.tag > redTag then
                 redTag = card.tag
             end
@@ -109,26 +136,66 @@ function Game:compare()
     for i, selected in ipairs(self.selectedCards.black) do
         if selected then
             local card = self.blackInPlay[i]
-            blackTotal = blackTotal + card.value
             if card.tag > blackTag then
                 blackTag = card.tag
             end
         end
     end
+    return redTag, blackTag
+end
+
+function Game:compare()
+    -- TODO ace wipe
+    -- TODO king tie
+    local redTotal = self:redTotal(self)
+    local blackTotal = self:blackTotal(self)
 
     if redTotal < blackTotal then
         return 0 -- Invalid move
-    elseif redTotal == blackTotal then
-        if redTag > blackTag then
-            return 1 -- Win by seniority
-        elseif redTag < blackTag then
-            return 2 -- Loss by seniority
+    end
+
+    if redTotal == blackTotal then
+        local redTag, blackTag = self:getTags()
+        print("Red tag: " .. redTag)
+        print("Black tag: " .. blackTag)
+        if redTag > 10 or blackTag > 10 then
+            if redTag == blackTag then
+                return 2 -- Tie
+            elseif redTag > blackTag then
+                return 1 -- Red wins
+            else
+                return 0 -- Invalid move
+            end
         else
             return 2 -- Tie
         end
-    else
-        return 1 -- Win
     end
+
+    if redTotal > blackTotal then
+        return 1 -- Red wins
+    end
+
+    return 0 -- Invalid move
+
+end
+
+function Game:endTurn()
+    for i, selected in ipairs(self.selectedCards.red) do
+        if selected then
+            self.redInPlay[i] = {tag = 0, value = 0}
+        end
+    end
+
+    for i, selected in ipairs(self.selectedCards.black) do
+        if selected then
+            self.blackInPlay[i] = {tag = 0, value = 0}
+        end
+    end
+
+    self.selectedCards.red = {false, false, false}
+    self.selectedCards.black = {false, false, false}
+
+    self:drawCards()
 end
 
 function Game:playMove()
@@ -136,18 +203,16 @@ function Game:playMove()
 
     if result == 0 then
         print("Invalid move")
+        self.graphicsController:shakePlayButton()
         return
     elseif result == 1 then
         print("Valid move, you win")
+        self:endTurn()
         -- Handle win logic
     elseif result == 2 then
         print("Tie")
         -- Handle tie logic
     end
-
-    -- Clear selected cards
-    self.selectedCards.red = {}
-    self.selectedCards.black = {}
 end
 
 function Game:endGame()

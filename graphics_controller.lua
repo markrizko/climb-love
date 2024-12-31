@@ -37,15 +37,15 @@ function GraphicsController:new()
     self.screenHeight = love.graphics.getHeight()
 
     self.BUTTON_X = self.screenWidth * 0.7
-    self.BUTTON_Y = self.screenHeight * 0.8
+    self.BUTTON_Y = self.screenHeight * 0.5
     self.BUTTON_WIDTH = 100
     self.BUTTON_HEIGHT = 50
 
     self.redCardX = self.screenWidth * 0.1
-    self.redCardY = self.screenHeight * 0.8
+    self.redCardY = self.screenHeight * 0.7
     self.blackCardX = self.screenWidth * 0.1
     self.blackCardY = self.screenHeight * 0.4
-    self.blackKingX = self.screenWidth * 0.5
+    self.blackKingX = self.screenWidth * 0.25
     self.blackKingY = self.screenHeight * 0.1
     return self
 end
@@ -71,6 +71,7 @@ function GraphicsController:drawPlayButton(button)
         local shakeOffsetY = love.math.random(-self.shakeMagnitude, self.shakeMagnitude)
         buttonX = buttonX + shakeOffsetX
         buttonY = buttonY + shakeOffsetY
+        self.shakeTime = self.shakeTime - love.timer.getDelta()
     end
 
     love.graphics.setColor(1, 1, 1)
@@ -98,8 +99,12 @@ function GraphicsController:drawCardsToScreen(redInPlay, blackInPlay, selectedCa
         if card then
             local cardX = self.redCardX + (i - 1) * 120
             local cardY = self.redCardY
-            love.graphics.draw(self.cardImages[card.tag], cardX, cardY)
-            if selectedCards.red[i] then
+            if card.tag == 0 then
+                love.graphics.draw(self.cardBack, cardX, cardY)
+            else
+                love.graphics.draw(self.cardImages[card.tag], cardX, cardY)
+            end
+                if selectedCards.red[i] then
                 love.graphics.setColor(1, 0, 0)
                 love.graphics.setLineWidth(3)
                 love.graphics.rectangle("line", cardX, cardY, self.cardImages[card.tag]:getWidth(), self.cardImages[card.tag]:getHeight())
@@ -114,7 +119,11 @@ function GraphicsController:drawCardsToScreen(redInPlay, blackInPlay, selectedCa
         if card then
             local cardX = self.blackCardX + (i - 1) * 120
             local cardY = self.blackCardY
-            love.graphics.draw(self.cardImages[card.tag + 13], cardX, cardY)
+            if card.tag == 0 then
+                love.graphics.draw(self.cardBack, cardX, cardY)
+            else
+                love.graphics.draw(self.cardImages[card.tag + 13], cardX, cardY)
+            end
             if selectedCards.black[i] then
                 love.graphics.setColor(1, 0, 0)
                 love.graphics.setLineWidth(3)
