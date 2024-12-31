@@ -12,35 +12,15 @@ function Game:new()
     game.selectedCards = {red = {}, black = {}}
     game.score = 0
     game.gameOver = false
+    game.graphicsController = GraphicsController:new()
 
-    -- Load card images
-    game.cardImages = {}
-    for i = 1, 13 do
-        game.cardImages[i] = love.graphics.newImage("images/card-hearts-" .. i .. ".png")
-    end
-    for i = 1, 13 do
-        game.cardImages[i + 13] = love.graphics.newImage("images/card-spades-" .. i .. ".png")
-    end
-
-    game.cardBack = love.graphics.newImage("images/card-back1.png")
-    game.blackKingImage = love.graphics.newImage("images/card-spades-13.png")
-
-    -- Calculate screen dimensions and positions
-    game.screenWidth = love.graphics.getWidth()
-    game.screenHeight = love.graphics.getHeight()
-
-    game.BUTTON_X = game.screenWidth * 0.7
-    game.BUTTON_Y = game.screenHeight * 0.8
-    game.BUTTON_WIDTH = 100
-    game.BUTTON_HEIGHT = 50
-
-    game.redCardX = game.screenWidth * 0.1
-    game.redCardY = game.screenHeight * 0.8
-    game.blackCardX = game.screenWidth * 0.1
-    game.blackCardY = game.screenHeight * 0.4
-    game.blackKingX = game.screenWidth * 0.5
-    game.blackKingY = game.screenHeight * 0.1
-
+    game.playButton = {
+        x = game.graphicsController.BUTTON_X,
+        y = game.graphicsController.BUTTON_Y,
+        width = game.graphicsController.BUTTON_WIDTH,
+        height = game.graphicsController.BUTTON_HEIGHT,
+        text = "Play Move"
+    }
     return game
 end
 
@@ -49,56 +29,8 @@ function Game:update(dt)
 end
 
 function Game:draw()
-    -- Clear the screen
-    love.graphics.clear()
-
-    -- Draw the red deck
-    love.graphics.draw(self.cardBack, self.redCardX, self.redCardY)
-
-    -- Draw the black deck
-    love.graphics.draw(self.cardBack, self.blackCardX, self.blackCardY)
-
-    -- Draw the black king
-    love.graphics.draw(self.blackKingImage, self.blackKingX, self.blackKingY)
-
-    -- Draw the red cards in play
-    for i, card in ipairs(self.redInPlay) do
-        if card then
-            local cardX = self.redCardX + (i - 1) * 120
-            local cardY = self.redCardY
-            love.graphics.draw(self.cardImages[card.tag], cardX, cardY)
-            if self.selectedCards.red[i] then
-                love.graphics.setColor(1, 0, 0)
-                love.graphics.setLineWidth(3)
-                love.graphics.rectangle("line", cardX, cardY, self.cardImages[card.tag]:getWidth(), self.cardImages[card.tag]:getHeight())
-                love.graphics.setColor(1, 1, 1)
-                love.graphics.setLineWidth(1)
-            end
-        end
-    end
-
-    -- Draw the black cards in play
-    for i, card in ipairs(self.blackInPlay) do
-        if card then
-            local cardX = self.blackCardX + (i - 1) * 120
-            local cardY = self.blackCardY
-            love.graphics.draw(self.cardImages[card.tag + 13], cardX, cardY)
-            if self.selectedCards.black[i] then
-                love.graphics.setColor(1, 0, 0)
-                love.graphics.setLineWidth(3)
-                love.graphics.rectangle("line", cardX, cardY, self.cardImages[card.tag + 13]:getWidth(), self.cardImages[card.tag + 13]:getHeight())
-                love.graphics.setColor(1, 1, 1)
-                love.graphics.setLineWidth(1)
-            end
-        end
-    end
-
-    -- Draw the play move button
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.rectangle("fill", self.BUTTON_X, self.BUTTON_Y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
-    love.graphics.setColor(0.2, 0.2, 0.2)
-    love.graphics.print("Play Move", self.BUTTON_X + 10, self.BUTTON_Y + 20)
-    love.graphics.setColor(1, 1, 1)
+    self.graphicsController:drawCardsToScreen(self.redInPlay, self.blackInPlay, self.selectedCards)
+    self.graphicsController:drawPlayButton(self.playButton)
 end
 
 function Game:keypressed(key)
@@ -109,11 +41,11 @@ function Game:mousepressed(x, y, button, istouch, presses)
     if button == 1 then
         -- Debug prints to check values
         print("x: " .. tostring(x) .. ", y: " .. tostring(y))
-        print("BUTTON_X: " .. tostring(self.BUTTON_X) .. ", BUTTON_Y: " .. tostring(self.BUTTON_Y))
-        print("BUTTON_WIDTH: " .. tostring(self.BUTTON_WIDTH) .. ", BUTTON_HEIGHT: " .. tostring(self.BUTTON_HEIGHT))
+        print("BUTTON_X: " .. tostring(self.graphicsController.BUTTON_X) .. ", BUTTON_Y: " .. tostring(self.graphicsController.BUTTON_Y))
+        print("BUTTON_WIDTH: " .. tostring(self.graphicsController.BUTTON_WIDTH) .. ", BUTTON_HEIGHT: " .. tostring(self.graphicsController.BUTTON_HEIGHT))
 
         -- Check if the play move button is pressed
-        if x >= self.BUTTON_X and x <= self.BUTTON_X + self.BUTTON_WIDTH and y >= self.BUTTON_Y and y <= self.BUTTON_Y + self.BUTTON_HEIGHT then
+        if x >= self.graphicsController.BUTTON_X and x <= self.graphicsController.BUTTON_X + self.graphicsController.BUTTON_WIDTH and y >= self.graphicsController.BUTTON_Y and y <= self.graphicsController.BUTTON_Y + self.graphicsController.BUTTON_HEIGHT then
             print("x: " .. x .. ", y: " .. y)
             self:playMove()
         end
@@ -121,10 +53,10 @@ function Game:mousepressed(x, y, button, istouch, presses)
         -- Check red cards
         for i, card in ipairs(self.redInPlay) do
             if card then
-                local cardX = self.redCardX + (i - 1) * 120
-                local cardY = self.redCardY
-                local cardWidth = self.cardImages[card.tag]:getWidth()
-                local cardHeight = self.cardImages[card.tag]:getHeight()
+                local cardX = self.graphicsController.redCardX + (i - 1) * 120
+                local cardY = self.graphicsController.redCardY
+                local cardWidth = self.graphicsController.cardImages[card.tag]:getWidth()
+                local cardHeight = self.graphicsController.cardImages[card.tag]:getHeight()
                 if x >= cardX and x <= cardX + cardWidth and y >= cardY and y <= cardY + cardHeight then
                     self.selectedCards.red[i] = not self.selectedCards.red[i]
                 end
@@ -134,16 +66,21 @@ function Game:mousepressed(x, y, button, istouch, presses)
         -- Check black cards
         for i, card in ipairs(self.blackInPlay) do
             if card then
-                local cardX = self.blackCardX + (i - 1) * 120
-                local cardY = self.blackCardY
-                local cardWidth = self.cardImages[card.tag + 13]:getWidth()
-                local cardHeight = self.cardImages[card.tag + 13]:getHeight()
+                local cardX = self.graphicsController.blackCardX + (i - 1) * 120
+                local cardY = self.graphicsController.blackCardY
+                local cardWidth = self.graphicsController.cardImages[card.tag + 13]:getWidth()
+                local cardHeight = self.graphicsController.cardImages[card.tag + 13]:getHeight()
                 if x >= cardX and x <= cardX + cardWidth and y >= cardY and y <= cardY + cardHeight then
                     self.selectedCards.black[i] = not self.selectedCards.black[i]
                 end
             end
         end
     end
+end
+
+function Game:startGame()
+    self:drawCards()
+    self:draw()
 end
 
 function Game:drawCards()

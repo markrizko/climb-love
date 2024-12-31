@@ -16,10 +16,11 @@ function love.load()
     require "card"
     require "deck"
     require "game"
+    require "graphics_controller"
 
     -- Initialize game
     game = Game:new()
-    game:drawCards()
+    game:startGame()
 end
 
 function love.update(dt)
