@@ -95,42 +95,40 @@ function GraphicsController:drawCardsToScreen(redInPlay, blackInPlay, selectedCa
     love.graphics.draw(self.blackKingImage, self.blackKingX, self.blackKingY)
 
     -- Draw the red cards in play
-    for i, card in ipairs(redInPlay) do
-        if card then
-            local cardX = self.redCardX + (i - 1) * 120
-            local cardY = self.redCardY
-            if card.tag == 0 then
-                love.graphics.draw(self.cardBack, cardX, cardY)
-            else
-                love.graphics.draw(self.cardImages[card.tag], cardX, cardY)
-            end
-                if selectedCards.red[i] then
-                love.graphics.setColor(1, 0, 0)
-                love.graphics.setLineWidth(3)
-                love.graphics.rectangle("line", cardX, cardY, self.cardImages[card.tag]:getWidth(), self.cardImages[card.tag]:getHeight())
-                love.graphics.setColor(1, 1, 1)
-                love.graphics.setLineWidth(1)
-            end
+    for i = 1, 3 do
+        local card = redInPlay[i]
+        local cardX = self.redCardX + (i - 1) * 120
+        local cardY = self.redCardY
+        if card and card.tag ~= 0 then
+            love.graphics.draw(self.cardImages[card.tag], cardX, cardY)
+        else
+            love.graphics.draw(self.cardBack, cardX, cardY)
+        end
+        if selectedCards.red[i] then
+            love.graphics.setColor(1, 0, 0)
+            love.graphics.setLineWidth(3)
+            love.graphics.rectangle("line", cardX, cardY, self.cardImages[card.tag or 1]:getWidth(), self.cardImages[card.tag or 1]:getHeight())
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.setLineWidth(1)
         end
     end
 
     -- Draw the black cards in play
-    for i, card in ipairs(blackInPlay) do
-        if card then
-            local cardX = self.blackCardX + (i - 1) * 120
-            local cardY = self.blackCardY
-            if card.tag == 0 then
-                love.graphics.draw(self.cardBack, cardX, cardY)
-            else
-                love.graphics.draw(self.cardImages[card.tag + 13], cardX, cardY)
-            end
-            if selectedCards.black[i] then
-                love.graphics.setColor(1, 0, 0)
-                love.graphics.setLineWidth(3)
-                love.graphics.rectangle("line", cardX, cardY, self.cardImages[card.tag + 13]:getWidth(), self.cardImages[card.tag + 13]:getHeight())
-                love.graphics.setColor(1, 1, 1)
-                love.graphics.setLineWidth(1)
-            end
+    for i = 1, 3 do
+        local card = blackInPlay[i]
+        local cardX = self.blackCardX + (i - 1) * 120
+        local cardY = self.blackCardY
+        if card and card.tag ~= 0 then
+            love.graphics.draw(self.cardImages[card.tag + 13], cardX, cardY)
+        else
+            love.graphics.draw(self.cardBack, cardX, cardY)
+        end
+        if selectedCards.black[i] then
+            love.graphics.setColor(1, 0, 0)
+            love.graphics.setLineWidth(3)
+            love.graphics.rectangle("line", cardX, cardY, self.cardImages[card.tag and (card.tag + 13) or 14]:getWidth(), self.cardImages[card.tag and (card.tag + 13) or 14]:getHeight())
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.setLineWidth(1)
         end
     end
 

@@ -25,7 +25,11 @@ function Game:new()
 end
 
 function Game:update(dt)
-    -- TODO
+    self:status()
+end
+
+function Game:status()
+    -- Check game status -- if we have won or lost
 end
 
 function Game:draw()
@@ -46,13 +50,14 @@ function Game:mousepressed(x, y, button, istouch, presses)
 
         -- Check if the play move button is pressed
         if x >= self.graphicsController.BUTTON_X and x <= self.graphicsController.BUTTON_X + self.graphicsController.BUTTON_WIDTH and y >= self.graphicsController.BUTTON_Y and y <= self.graphicsController.BUTTON_Y + self.graphicsController.BUTTON_HEIGHT then
-            print("x: " .. x .. ", y: " .. y)
+            -- print("x: " .. x .. ", y: " .. y)
             self:playMove()
         end
 
         -- Check red cards
-        for i, card in ipairs(self.redInPlay) do
-            if card then
+        for i = 1, 3 do
+            local card = self.redInPlay[i]
+            if card and card.tag ~= 0 then
                 local cardX = self.graphicsController.redCardX + (i - 1) * 120
                 local cardY = self.graphicsController.redCardY
                 local cardWidth = self.graphicsController.cardImages[card.tag]:getWidth()
@@ -64,8 +69,9 @@ function Game:mousepressed(x, y, button, istouch, presses)
         end
 
         -- Check black cards
-        for i, card in ipairs(self.blackInPlay) do
-            if card then
+        for i = 1, 3 do
+            local card = self.blackInPlay[i]
+            if card and card.tag ~= 0 then
                 local cardX = self.graphicsController.blackCardX + (i - 1) * 120
                 local cardY = self.graphicsController.blackCardY
                 local cardWidth = self.graphicsController.cardImages[card.tag + 13]:getWidth()
@@ -160,7 +166,11 @@ function Game:compare()
         print("Black tag: " .. blackTag)
         if redTag > 10 or blackTag > 10 then
             if redTag == blackTag then
-                return 2 -- Tie
+                if redTag == 13 and blackTag == 13 then
+                    return 1 -- King tie
+                else
+                    return 2 -- Tie
+                end
             elseif redTag > blackTag then
                 return 1 -- Red wins
             else
