@@ -60,8 +60,8 @@ function Game:mousepressed(x, y, button, istouch, presses)
             if card and card.tag ~= 0 then
                 local cardX = self.graphicsController.redCardX + (i - 1) * 120
                 local cardY = self.graphicsController.redCardY
-                local cardWidth = self.graphicsController.cardImages[card.tag]:getWidth()
-                local cardHeight = self.graphicsController.cardImages[card.tag]:getHeight()
+                local cardWidth = card.image:getWidth()
+                local cardHeight = card.image:getHeight()
                 if x >= cardX and x <= cardX + cardWidth and y >= cardY and y <= cardY + cardHeight then
                     self.selectedCards.red[i] = not self.selectedCards.red[i]
                 end
@@ -74,8 +74,8 @@ function Game:mousepressed(x, y, button, istouch, presses)
             if card and card.tag ~= 0 then
                 local cardX = self.graphicsController.blackCardX + (i - 1) * 120
                 local cardY = self.graphicsController.blackCardY
-                local cardWidth = self.graphicsController.cardImages[card.tag + 13]:getWidth()
-                local cardHeight = self.graphicsController.cardImages[card.tag + 13]:getHeight()
+                local cardWidth = card.image:getWidth()
+                local cardHeight = card.image:getHeight()
                 if x >= cardX and x <= cardX + cardWidth and y >= cardY and y <= cardY + cardHeight then
                     self.selectedCards.black[i] = not self.selectedCards.black[i]
                 end
@@ -189,6 +189,34 @@ function Game:compare()
 
 end
 
+function Game:Tie()
+    while true do
+        if self.redDeck:deckSize() == 0 or self.blackDeck:deckSize() == 0 then
+            return 1 -- red wins
+        end
+
+        local redCard = self.redDeck:getCard()
+        local blackCard = self.blackDeck:getCard()
+
+        self.graphicsController:displayTieCards(redCard, blackCard)
+        love.timer.sleep(1)
+
+        if redCard.value == blackCard.value then
+            if redCard.tag > blackCard.tag then
+                return 1 -- red wins
+            elseif redCard.tag < blackCard.tag then
+                self.blackDeck:putCardOnTop(blackCard)
+                return 2 -- black wins
+            end
+        elseif redCard.value > blackCard.value then
+            return 1 -- red wins
+        else
+            self.blackDeck:putCardOnTop(blackCard)
+            return 2 -- black wins
+        end
+    end
+end
+
 function Game:endTurn()
     for i, selected in ipairs(self.selectedCards.red) do
         if selected then
@@ -221,6 +249,8 @@ function Game:playMove()
         -- Handle win logic
     elseif result == 2 then
         print("Tie")
+        self:Tie()
+        self:endTurn()
         -- Handle tie logic
     end
 end

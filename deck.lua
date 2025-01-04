@@ -10,8 +10,8 @@ end
 
 function Deck:fillRed()
     for i = 1, 13 do
-        table.insert(self.cards, Card:new(i))
-        table.insert(self.cards, Card:new(i))
+        table.insert(self.cards, Card:new(i, 1))
+        table.insert(self.cards, Card:new(i, 3))
     end
     self.cardsLeft = #self.cards
     self:shuffle()
@@ -19,9 +19,12 @@ end
 
 function Deck:fillBlack()
     for i = 1, 13 do
-        table.insert(self.cards, Card:new(i))
-        if i ~= 13 then
-            table.insert(self.cards, Card:new(i))
+        if i == 13 then
+            local randomSuit = math.random(2) == 1 and 2 or 4
+            table.insert(self.cards, Card:new(i, randomSuit))
+        else
+            table.insert(self.cards, Card:new(i, 2))
+            table.insert(self.cards, Card:new(i, 4))
         end
     end
     self.cardsLeft = #self.cards
@@ -43,6 +46,11 @@ function Deck:getCard()
         self.cardsLeft = self.cardsLeft - 1
         return card
     end
+end
+
+function Deck:putCardOnTop(card)
+    table.insert(self.cards, card)
+    self.cardsLeft = self.cardsLeft + 1
 end
 
 function Deck:deckSize()
