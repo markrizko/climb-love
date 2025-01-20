@@ -68,6 +68,22 @@ function GraphicsController:update(dt)
     end
 end
 
+function GraphicsController:displayWinScreen()
+    love.graphics.clear()
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.setFont(love.graphics.newFont(32)) -- Set font size to 32
+    love.graphics.print("You Win!", self.screenWidth / 2 - 100, self.screenHeight / 2 - 50)
+    love.graphics.present()
+end
+
+function GraphicsController:displayLoseScreen()
+    love.graphics.clear()
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.setFont(love.graphics.newFont(32)) -- Set font size to 32
+    love.graphics.print("You Lose!", self.screenWidth / 2 - 50, self.screenHeight / 2 - 50)
+    love.graphics.present()
+end
+
 -- TODO consolidate button drawing
 function GraphicsController:drawResetButton(button)
     local buttonX, buttonY = button.x, button.y

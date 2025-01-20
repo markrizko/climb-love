@@ -13,6 +13,8 @@ function Game:new()
     game.score = 0
     game.gameOver = false
     game.graphicsController = GraphicsController:new()
+    game.winner = false
+    game.finalBoss = false
 
     game.playButton = {
         x = game.graphicsController.PLAY_BUTTON_X,
@@ -34,10 +36,48 @@ end
 
 function Game:update(dt)
     self:status()
+    if self.gameOver then
+        self:endGame()
+    end
 end
 
+-- Check game status -- if we have won or lost
 function Game:status()
-    -- Check game status -- if we have won or lost
+    if self:allBlackCardsDefeated() and self.finalBoss == true then
+        self.winner = true
+        self.gameOver = true
+    elseif self:blackWin() then
+        self.gameOver = true
+    end
+end
+
+function Game:blackWin()
+    if self.redDeck:deckSize() > 0 then
+        return false
+    end
+
+    local redTotal = 0
+    local blackTotal = 0
+
+    for i, card in ipairs(self.redInPlay) do
+        redTotal = redTotal + card.value
+    end
+
+    for i, card in ipairs(self.blackInPlay) do
+        blackTotal = blackTotal + card.value
+    end
+
+    if redTotal < blackTotal then
+        return true
+    elseif redTotal == blackTotal then
+        local redTag, blackTag = self:getTags()
+        if redTag < blackTag then
+            return true
+        end
+    else
+        return false
+    end
+
 end
 
 function Game:draw()
@@ -276,7 +316,7 @@ function Game:endTurn()
 
     self:drawCards()
 
-    if self.blackDeck:deckSize() == 0 and self:allBlackCardsDefeated() then
+    if self.blackDeck:deckSize() == 0 and self:allBlackCardsDefeated() and self.finalBoss == false then
         self:finalEncounter()
     end
 end
@@ -293,6 +333,7 @@ end
 function Game:finalEncounter()
     self.blackInPlay[2] = {tag = 13, value = 10, image = love.graphics.newImage("images/evil-king.png")}
     self:draw()
+    self.finalBoss = true
 end
 
 function Game:restart()
@@ -319,6 +360,10 @@ function Game:playMove()
 end
 
 function Game:endGame()
-    -- TODO
+    if self.winner then
+        self.graphicsController:displayWinScreen()
+    else
+        self.graphicsController:displayLoseScreen()
+    end
 end
 
