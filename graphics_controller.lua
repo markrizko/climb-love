@@ -36,10 +36,15 @@ function GraphicsController:new()
     self.screenWidth = love.graphics.getWidth()
     self.screenHeight = love.graphics.getHeight()
 
-    self.BUTTON_X = self.screenWidth * 0.7
-    self.BUTTON_Y = self.screenHeight * 0.5
-    self.BUTTON_WIDTH = 100
-    self.BUTTON_HEIGHT = 50
+    self.PLAY_BUTTON_X = self.screenWidth * 0.7
+    self.PLAY_BUTTON_Y = self.screenHeight * 0.5
+    self.PLAY_BUTTON_WIDTH = 100
+    self.PLAY_BUTTON_HEIGHT = 50
+
+    self.RST_BUTTON_X = self.screenWidth * 0.8
+    self.RST_BUTTON_Y = self.screenHeight * 0.1
+    self.RST_BUTTON_WIDTH = 100
+    self.RST_BUTTON_HEIGHT = 50
 
     self.redCardX = self.screenWidth * 0.1
     self.redCardY = self.screenHeight * 0.7
@@ -63,6 +68,16 @@ function GraphicsController:update(dt)
     end
 end
 
+-- TODO consolidate button drawing
+function GraphicsController:drawResetButton(button)
+    local buttonX, buttonY = button.x, button.y
+    love.graphics.setColor(1,1,1)
+    love.graphics.rectangle("fill", buttonX, buttonY, button.width, button.height)
+    love.graphics.setColor(0.2, 0.2, 0.2)
+    love.graphics.printf(button.text, buttonX, buttonY + button.height / 2 - 6, button.width, "center")
+    love.graphics.setColor(1, 1, 1)
+end
+
 function GraphicsController:drawPlayButton(button)
     local buttonX, buttonY = button.x, button.y
 
@@ -82,12 +97,12 @@ function GraphicsController:drawPlayButton(button)
 end
 
 function GraphicsController:displayTieCards(redCard, blackCard)
-    local blackCardX = self.BUTTON_X
-    local blackCardY = self.BUTTON_Y - 175
+    local blackCardX = self.PLAY_BUTTON_X
+    local blackCardY = self.PLAY_BUTTON_Y - 175
     love.graphics.draw(blackCard.image, blackCardX, blackCardY)
 
-    local redCardX = self.BUTTON_X
-    local redCardY = self.BUTTON_Y + 75
+    local redCardX = self.PLAY_BUTTON_X
+    local redCardY = self.PLAY_BUTTON_Y + 75
     love.graphics.draw(redCard.image, redCardX, redCardY)
 
     love.graphics.present()
@@ -146,9 +161,9 @@ function GraphicsController:drawCardsToScreen(redInPlay, blackInPlay, selectedCa
 
     -- Draw the play move button
     love.graphics.setColor(1, 1, 1)
-    love.graphics.rectangle("fill", self.BUTTON_X, self.BUTTON_Y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
+    love.graphics.rectangle("fill", self.PLAY_BUTTON_X, self.PLAY_BUTTON_Y, self.PLAY_BUTTON_WIDTH, self.PLAY_BUTTON_HEIGHT)
     love.graphics.setColor(0.2, 0.2, 0.2)
-    love.graphics.print("Play Move", self.BUTTON_X + 10, self.BUTTON_Y + 20)
+    love.graphics.print("Play Move", self.PLAY_BUTTON_X + 10, self.PLAY_BUTTON_Y + 20)
     love.graphics.setColor(1, 1, 1)
 end
 

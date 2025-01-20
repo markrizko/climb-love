@@ -15,11 +15,19 @@ function Game:new()
     game.graphicsController = GraphicsController:new()
 
     game.playButton = {
-        x = game.graphicsController.BUTTON_X,
-        y = game.graphicsController.BUTTON_Y,
-        width = game.graphicsController.BUTTON_WIDTH,
-        height = game.graphicsController.BUTTON_HEIGHT,
+        x = game.graphicsController.PLAY_BUTTON_X,
+        y = game.graphicsController.PLAY_BUTTON_Y,
+        width = game.graphicsController.PLAY_BUTTON_WIDTH,
+        height = game.graphicsController.PLAY_BUTTON_HEIGHT,
         text = "Play Move"
+    }
+
+    game.restartButton = {
+        x = game.graphicsController.RST_BUTTON_X,
+        y = game.graphicsController.RST_BUTTON_Y,
+        width = game.graphicsController.RST_BUTTON_WIDTH,
+        height = game.graphicsController.RST_BUTTON_HEIGHT,
+        text = "Restart"
     }
     return game
 end
@@ -35,6 +43,7 @@ end
 function Game:draw()
     self.graphicsController:drawCardsToScreen(self.redInPlay, self.blackInPlay, self.selectedCards)
     self.graphicsController:drawPlayButton(self.playButton)
+    self.graphicsController:drawResetButton(self.restartButton)
 end
 
 function Game:keypressed(key)
@@ -45,13 +54,18 @@ function Game:mousepressed(x, y, button, istouch, presses)
     if button == 1 then
         -- Debug prints to check values
         -- print("x: " .. tostring(x) .. ", y: " .. tostring(y))
-        -- print("BUTTON_X: " .. tostring(self.graphicsController.BUTTON_X) .. ", BUTTON_Y: " .. tostring(self.graphicsController.BUTTON_Y))
-        -- print("BUTTON_WIDTH: " .. tostring(self.graphicsController.BUTTON_WIDTH) .. ", BUTTON_HEIGHT: " .. tostring(self.graphicsController.BUTTON_HEIGHT))
+        -- print("PLAY_BUTTON_X: " .. tostring(self.graphicsController.PLAY_BUTTON_X) .. ", PLAY_BUTTON_Y: " .. tostring(self.graphicsController.PLAY_BUTTON_Y))
+        -- print("PLAY_BUTTON_WIDTH: " .. tostring(self.graphicsController.PLAY_BUTTON_WIDTH) .. ", PLAY_BUTTON_HEIGHT: " .. tostring(self.graphicsController.PLAY_BUTTON_HEIGHT))
 
         -- Check if the play move button is pressed
-        if x >= self.graphicsController.BUTTON_X and x <= self.graphicsController.BUTTON_X + self.graphicsController.BUTTON_WIDTH and y >= self.graphicsController.BUTTON_Y and y <= self.graphicsController.BUTTON_Y + self.graphicsController.BUTTON_HEIGHT then
+        if x >= self.graphicsController.PLAY_BUTTON_X and x <= self.graphicsController.PLAY_BUTTON_X + self.graphicsController.PLAY_BUTTON_WIDTH and y >= self.graphicsController.PLAY_BUTTON_Y and y <= self.graphicsController.PLAY_BUTTON_Y + self.graphicsController.PLAY_BUTTON_HEIGHT then
             -- print("x: " .. x .. ", y: " .. y)
             self:playMove()
+        end
+
+        -- Check if the restart button is pressed
+        if x >= self.graphicsController.RST_BUTTON_X and x <= self.graphicsController.RST_BUTTON_X + self.graphicsController.RST_BUTTON_WIDTH and y >= self.graphicsController.RST_BUTTON_Y and y <= self.graphicsController.RST_BUTTON_Y + self.graphicsController.RST_BUTTON_HEIGHT then
+            self:restart()
         end
 
         -- Check red cards
@@ -150,9 +164,34 @@ function Game:getTags()
     return redTag, blackTag
 end
 
+function Game:checkSelected()
+    local redSelected = false
+    local blackSelected = false
+
+    for _, selected in ipairs(self.selectedCards.red) do
+        if selected then
+            redSelected = true
+            break
+        end
+    end
+
+    for _, selected in ipairs(self.selectedCards.black) do
+        if selected then
+            blackSelected = true
+            break
+        end
+    end
+
+    return redSelected and blackSelected
+end
+
 function Game:compare()
     -- TODO ace wipe
-    -- TODO king tie
+
+    if not self:checkSelected() then
+        return 0 -- Invalid move
+    end
+
     local redTotal = self:redTotal(self)
     local blackTotal = self:blackTotal(self)
 
@@ -199,16 +238,18 @@ function Game:Tie()
         local blackCard = self.blackDeck:getCard()
 
         self.graphicsController:displayTieCards(redCard, blackCard)
-        love.timer.sleep(1)
+        love.timer.sleep(1.5)
 
         if redCard.value == blackCard.value then
             if redCard.tag > blackCard.tag then
+                self.redDeck:putCardOnTop(redCard)
                 return 1 -- red wins
             elseif redCard.tag < blackCard.tag then
                 self.blackDeck:putCardOnTop(blackCard)
                 return 2 -- black wins
             end
         elseif redCard.value > blackCard.value then
+            self.redDeck:putCardOnTop(redCard)
             return 1 -- red wins
         else
             self.blackDeck:putCardOnTop(blackCard)
@@ -234,6 +275,28 @@ function Game:endTurn()
     self.selectedCards.black = {false, false, false}
 
     self:drawCards()
+
+    if self.blackDeck:deckSize() == 0 and self:allBlackCardsDefeated() then
+        self:finalEncounter()
+    end
+end
+
+function Game:allBlackCardsDefeated()
+    for i, card in pairs(self.blackInPlay) do
+        if card.tag ~= 0 then
+            return false
+        end
+    end
+    return true
+end
+
+function Game:finalEncounter()
+    self.blackInPlay[2] = {tag = 13, value = 10, image = love.graphics.newImage("images/evil-king.png")}
+    self:draw()
+end
+
+function Game:restart()
+    love.event.quit("restart")
 end
 
 function Game:playMove()
