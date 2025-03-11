@@ -84,32 +84,40 @@ function GraphicsController:displayLoseScreen()
     love.graphics.present()
 end
 
--- TODO consolidate button drawing
-function GraphicsController:drawResetButton(button)
+-- Consolidated button drawing function
+function GraphicsController:drawButton(button, options)
+    options = options or {}
     local buttonX, buttonY = button.x, button.y
-    love.graphics.setColor(1,1,1)
-    love.graphics.rectangle("fill", buttonX, buttonY, button.width, button.height)
-    love.graphics.setColor(0.2, 0.2, 0.2)
-    love.graphics.printf(button.text, buttonX, buttonY + button.height / 2 - 6, button.width, "center")
-    love.graphics.setColor(1, 1, 1)
-end
-
-function GraphicsController:drawPlayButton(button)
-    local buttonX, buttonY = button.x, button.y
-
-    if self.shakeTime > 0 then
+    
+    -- Apply shake effect if specified
+    if options.shake and self.shakeTime > 0 then
         local shakeOffsetX = love.math.random(-self.shakeMagnitude, self.shakeMagnitude)
         local shakeOffsetY = love.math.random(-self.shakeMagnitude, self.shakeMagnitude)
         buttonX = buttonX + shakeOffsetX
         buttonY = buttonY + shakeOffsetY
         self.shakeTime = self.shakeTime - love.timer.getDelta()
     end
-
-    love.graphics.setColor(1, 1, 1)
+    
+    -- Draw button background
+    love.graphics.setColor(options.bgColor or {1, 1, 1})
     love.graphics.rectangle("fill", buttonX, buttonY, button.width, button.height)
-    love.graphics.setColor(0.2, 0.2, 0.2)
+    
+    -- Draw button text
+    love.graphics.setColor(options.textColor or {0.2, 0.2, 0.2})
     love.graphics.printf(button.text, buttonX, buttonY + button.height / 2 - 6, button.width, "center")
+    
+    -- Reset color
     love.graphics.setColor(1, 1, 1)
+    
+    return buttonX, buttonY  -- Return actual position (useful for hit detection after shake)
+end
+
+function GraphicsController:drawResetButton(button)
+    self:drawButton(button)
+end
+
+function GraphicsController:drawPlayButton(button)
+    self:drawButton(button, {shake = true})
 end
 
 function GraphicsController:displayTieCards(redCard, blackCard)
@@ -181,6 +189,26 @@ function GraphicsController:drawCardsToScreen(redInPlay, blackInPlay, selectedCa
     love.graphics.setColor(0.2, 0.2, 0.2)
     love.graphics.print("Play Move", self.PLAY_BUTTON_X + 10, self.PLAY_BUTTON_Y + 20)
     love.graphics.setColor(1, 1, 1)
+end
+
+function GraphicsController:drawMainMenu()
+    love.graphics.clear()
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.setFont(love.graphics.newFont(32))
+    love.graphics.printf("Main Menu", 0, self.screenHeight * 0.2, self.screenWidth, "center")
+
+    -- Draw Play button - only pass shake=true when you want it to shake
+    self:drawButton(
+        {x = self.PLAY_BUTTON_X, y = self.PLAY_BUTTON_Y, width = self.PLAY_BUTTON_WIDTH, height = self.PLAY_BUTTON_HEIGHT, text = "Play"}
+        -- No shake option passed here
+    )
+
+    -- Draw Exit button
+    self:drawButton(
+        {x = self.PLAY_BUTTON_X, y = self.PLAY_BUTTON_Y + 100, width = self.PLAY_BUTTON_WIDTH, height = self.PLAY_BUTTON_HEIGHT, text = "Exit"}
+    )
+
+    love.graphics.present()
 end
 
 return GraphicsController
