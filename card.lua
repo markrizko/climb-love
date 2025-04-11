@@ -1,10 +1,17 @@
 Card = {}
 Card.__index = Card
 
+Card.Suit = {
+    HEARTS = 1,
+    SPADES = 2,
+    DIAMONDS = 3,
+    CLUBS = 4
+}
+
 function Card:new(tag, suit)
     local card = setmetatable({}, Card)
     card.tag = tag
-    card.value = self:getValueFromTag(tag)
+    card.value = self:getValueFromTag(tag, suit)
     card.suit = suit
     card.image = self:loadCardImage(tag, suit)
     return card
@@ -15,9 +22,13 @@ function Card:loadCardImage(tag, suit)
     return love.graphics.newImage("images/card-" .. suits[suit] .. "-" .. tag .. ".png")
 end
 
-function Card:getValueFromTag(tag)
+function Card:getValueFromTag(tag, suit)
     if tag == 1 then
-        return 11
+        if suit == HEARTS or suit == SPADES or suit == DIAMONDS then
+            return 1
+        else
+            return 11
+        end
     elseif tag >= 2 and tag <= 10 then
         return tag
     elseif tag >= 11 and tag <= 13 then

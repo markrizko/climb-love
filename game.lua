@@ -226,7 +226,12 @@ function Game:checkSelected()
 end
 
 function Game:compare()
-    -- TODO ace wipe
+    local aceEffect = self:checkAceEffect()
+    if aceEffect == 3 then
+        return 1 -- Assassination
+    elseif aceEffect == 4 then
+        return 4 -- Ace wipe
+    end
 
     if not self:checkSelected() then
         return 0 -- Invalid move
@@ -266,6 +271,37 @@ function Game:compare()
 
     return 0 -- Invalid move
 
+end
+
+function Game:checkAceEffect()
+    local redAce = nil
+    local blackRoyal = nil
+
+    for i, selected in ipairs(self.selectedCards.red) do
+        if selected then
+            local card = self.redInPlay[i]
+            if card.tag == 1 then
+                redAce = card
+            end
+        end
+    end
+
+    for i, selected in ipairs(self.selectedCards.black) do
+        if selected then
+            local card = self.blackInPlay[i]
+            if card.tag >= 11 then
+                blackRoyal = card
+            end
+        end
+    end
+
+    if redAce and redAce.suit == DIAMONDS and blackRoyal then
+        return 3 -- Assassination
+    elseif redAce and redAce.suit == HEARTS then
+        return 4 -- Ace wipe
+    end
+
+    return 0 -- No special effect
 end
 
 function Game:Tie()
